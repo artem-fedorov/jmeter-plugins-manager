@@ -34,6 +34,7 @@ public class ChangesMaker {
         command.add("-classpath");
         command.add(URLDecoder.decode(getTempPmgrJAR().getPath(), "UTF-8"));
         command.add(SafeDeleter.class.getCanonicalName());
+        command.add(JMeterUtils.getJMeterHome());
         command.add("--move-list");
         command.add(moveFile.getAbsolutePath());
         command.add("--install-list");
@@ -46,7 +47,7 @@ public class ChangesMaker {
 
         log.debug("Command to execute: " + command);
         final ProcessBuilder builder = new ProcessBuilder(command);
-        File cleanerLog = File.createTempFile("jpgc-cleaner-", ".log");
+        File cleanerLog = new File(JMeterUtils.getJMeterBinDir(), "jpgc-cleaner.log");
         builder.redirectError(cleanerLog);
         builder.redirectOutput(cleanerLog);
         return builder;

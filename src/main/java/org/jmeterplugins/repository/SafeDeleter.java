@@ -14,6 +14,7 @@ public class SafeDeleter {
 
     public static void main(String[] argsRaw) throws Throwable {
         ListIterator<String> args = Arrays.asList(argsRaw).listIterator();
+        String jmeterHome = args.next();
 
         while (args.hasNext()) {
             String nextArg = args.next();
@@ -31,7 +32,7 @@ public class SafeDeleter {
                 }
 
                 File file = new File(args.next());
-                installsFromFile(file);
+                installsFromFile(jmeterHome, file);
                 file.delete();
             } else if (nextArg.equalsIgnoreCase("--restart-command")) {
                 if (!args.hasNext()) {
@@ -39,7 +40,7 @@ public class SafeDeleter {
                 }
 
                 File file = new File(args.next());
-                restartFromFile(file);
+                restartFromFile(jmeterHome, file);
                 file.delete();
             } else {
                 throw new IllegalArgumentException("Unknown option: " + nextArg);
@@ -47,10 +48,10 @@ public class SafeDeleter {
         }
     }
 
-    private static void installsFromFile(File file) throws IOException {
+    private static void installsFromFile(String jmeterHome, File file) throws IOException {
         try (FileReader fr = new FileReader(file);
              BufferedReader br = new BufferedReader(fr)) {
-            File log = File.createTempFile("jpgc-installers-", ".log");
+            File log = new File(getJMeterBin(jmeterHome), "jpgc-installers.log");
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split("\t");
@@ -83,7 +84,7 @@ public class SafeDeleter {
         }
     }
 
-    private static void restartFromFile(File file) throws IOException {
+    private static void restartFromFile(String jmeterHome, File file) throws IOException {
         final ArrayList<String> command = new ArrayList<>();
         try (FileReader fr = new FileReader(file);
              BufferedReader br = new BufferedReader(fr)) {
@@ -94,11 +95,15 @@ public class SafeDeleter {
 
             final ProcessBuilder builder = new ProcessBuilder(command);
             System.out.print("Starting: " + command + "\n");
-            File restarterLog = File.createTempFile("jpgc-restarter-", ".log");
+            File restarterLog = new File(getJMeterBin(jmeterHome), "jpgc-restarter.log");
             builder.redirectError(restarterLog);
             builder.redirectOutput(restarterLog);
             builder.start();
         }
+    }
+
+    private static String getJMeterBin(String jmeterHome) {
+        return jmeterHome + File.separator + "bin";
     }
 
     private static void moveFiles(File list) throws IOException, InterruptedException {
